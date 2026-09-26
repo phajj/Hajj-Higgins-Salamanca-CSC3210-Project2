@@ -1,0 +1,11 @@
+{
+  "name": "Solar Satellite Satisfaction",
+  "version": "1.0.0",
+  "description": "CSC 3210 Solar Satellite Satisfaction",
+  "scripts": {
+    "start": "serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
