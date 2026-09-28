@@ -16,6 +16,11 @@ This file records the prompts we gave to AI coding assistents and/or other LLMs 
   - LLM: Claude Code CLI
 - Add a section at the start of both @COPILOT.md and @CLAUDE.md (hyperlink each other) to say I have both because I am using this project to test both AI coding agents and compare their strengths and weaknesses. Add this prompt to @docs\prompts.md
   - LLM: Claude Code CLI
+- clear all the (1138) new files that just got added to this directory (aka every unstaged changes, do not clear the staged changes ( @src/main.js and @src/camera.js )). Update @package.json and whatever else needs to be updated in order to match the npm serve command detailed in @README.md
+  - LLM: Claude Code CLI
+  - should @package-lock.json be in the gitignore?
+- Make a some temporary geometry to live in the space for me to test the camera movements and controls
+  - LLM: Claude Code CLI
 
 ## Jackson 
 

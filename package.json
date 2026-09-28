@@ -1,6 +1,7 @@
 {
-  "name": "Solar Satellite Satisfaction",
+  "name": "solar-satellite-satisfaction",
   "version": "1.0.0",
+  "private": true,
   "description": "CSC 3210 Solar Satellite Satisfaction",
   "scripts": {
     "start": "serve ."

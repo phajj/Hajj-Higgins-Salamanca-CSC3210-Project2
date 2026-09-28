@@ -14,3 +14,17 @@ export function createCamera(aspect) {
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   return camera;
 }
+
+export function perspectiveCamera(aspect) {
+  const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 500);
+  camera.position.z = 35;
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  return camera;
+}
+
+export function orthographicCamera(aspect) {
+  const camera = new THREE.OrthographicCamera(-aspect * 20, aspect * 20, 20, -20, 0.1, 500);
+  camera.position.z = 35;
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  return camera;
+}
