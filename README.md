@@ -29,6 +29,9 @@ TODO later
 ## Technical Docs
 
 ### Challenges 
-TODO: update as we go
+- Jackson Higgins
+  - Implementing delta time for rotation
+    - Solution: Googled threejs delta time example and applied same logic to this project
+
 ### Above and Beyond Implementations
 TODO: update as we go
