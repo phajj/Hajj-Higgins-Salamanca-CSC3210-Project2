@@ -38,7 +38,7 @@ const satellite = new THREE.Group();
 
 // Satellite body
 const bodyGeometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
-const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
 const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
 satellite.add(body);
 
@@ -46,7 +46,7 @@ satellite.add(body);
 const panels = new THREE.Group();
 
 const panelGeometry = new THREE.BoxGeometry(3, 3, 1);
-const panelMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const panelMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
 const leftPanel = new THREE.Mesh(panelGeometry, panelMaterial);
 const rightPanel = new THREE.Mesh(panelGeometry, panelMaterial);
 
@@ -57,8 +57,27 @@ panels.add(rightPanel);
 panels.add(leftPanel);
 
 satellite.add(panels);
+satellite.position.set(0, 0, -2);
 
 scene.add(satellite);
+
+
+// Directional lighting for sun
+const sunRotationSpeed = 2;
+const sunOrigin = new THREE.Group(); // Used for rotating the sun
+const sunLight = new THREE.DirectionalLight(0xffffff, 10);
+const sunGeometry = new THREE.BoxGeometry(5, 5, 5)
+const sunMaterial = new THREE.MeshBasicMaterial({color: 0xFFDF22})
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+
+sun.position.set(0,10,0);
+sunLight.position.copy(sun.position);
+
+sunOrigin.add(sun);
+sunOrigin.add(sunLight);
+
+scene.add(sunOrigin);
+
 
 /**
  * Rotate the panels of the satellite
@@ -66,6 +85,7 @@ scene.add(satellite);
 function rotatePanels() {
   const delta = CLOCK.getDelta();
   panels.rotation.x = (panels.rotation.x + PANEL_SPEED * delta) % TWO_PI;
+  sunOrigin.rotation.x = (sunOrigin.rotation.x + sunRotationSpeed * delta) % TWO_PI;
 }
 
 /**
