@@ -2,9 +2,12 @@ import * as THREE from "three";
 import { createCamera } from "./camera.js";
 import { terrain } from "./terrain.js";
 
+
 const TWO_PI = Math.PI * 2; // Used for rotation calculations
 const CLOCK = new THREE.Clock();
 const PANEL_SPEED = 0.5; // Speed of panel rotation
+const SATELLITE_SPEED = .75;
+const SUN_SPEED = .25;
 
 // Scene
 const scene = new THREE.Scene();
@@ -19,14 +22,6 @@ document.body.appendChild(renderer.domElement);
 // Camera
 const camera = createCamera(window.innerWidth / window.innerHeight);
 
-// Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-scene.add(ambientLight);
-
-const pointLight = new THREE.PointLight(0xffffff, 2, 0, 0);
-pointLight.position.set(0, 0, 0);
-scene.add(pointLight);
-
 // Keep the camera and renderer in sync with the window size
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -36,6 +31,9 @@ window.addEventListener("resize", () => {
 
 // Satellite
 const satellite = new THREE.Group();
+const satelliteOrigin = new THREE.Group(); // Used for rotating the satellite around the terrain 
+satelliteOrigin.add(satellite);
+satelliteOrigin.position.set(0, 0, 0);
 
 // Satellite body
 const bodyGeometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
@@ -58,20 +56,21 @@ panels.add(rightPanel);
 panels.add(leftPanel);
 
 satellite.add(panels);
-satellite.position.set(0, 0, -2);
+satellite.position.set(15, 10, 0);
 
-scene.add(satellite);
+scene.add(satelliteOrigin);
 
 
 // Directional lighting for sun
-const sunRotationSpeed = 2;
 const sunOrigin = new THREE.Group(); // Used for rotating the sun
 const sunLight = new THREE.DirectionalLight(0xffffff, 10);
-const sunGeometry = new THREE.BoxGeometry(5, 5, 5)
+
+// Creating sun object
+const sunGeometry = new THREE.SphereGeometry(5, 50, 5)
 const sunMaterial = new THREE.MeshBasicMaterial({color: 0xFFDF22})
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+sun.position.set(0,40,0);
 
-sun.position.set(0,10,0);
 sunLight.position.copy(sun.position);
 
 sunOrigin.add(sun);
@@ -83,26 +82,24 @@ scene.add(sunOrigin);
 /**
  * Rotate the panels of the satellite
  */
-function rotatePanels() {
+function rotate() {
   const delta = CLOCK.getDelta();
   panels.rotation.x = (panels.rotation.x + PANEL_SPEED * delta) % TWO_PI;
-  sunOrigin.rotation.x = (sunOrigin.rotation.x + sunRotationSpeed * delta) % TWO_PI;
+  sunOrigin.rotation.x = (sunOrigin.rotation.x + SUN_SPEED * delta) % TWO_PI;
+  satelliteOrigin.rotation.y = (satelliteOrigin.rotation.y + SATELLITE_SPEED * delta) % TWO_PI;
 }
 //Add terrain to the scene
 const t = new terrain();
 scene.add(t);
 
-const clock = new THREE.Clock();
-
 /**
  * Render loop, called once per frame
  */
 function animate() {
-  rotatePanels();
-  requestAnimationFrame(animate);
+  rotate();
 
   // Update the time uniform every frame to animate the wave
-  t.update(clock.getElapsedTime());
+  t.update(CLOCK.getElapsedTime());
 
   renderer.render(scene, camera);
 }

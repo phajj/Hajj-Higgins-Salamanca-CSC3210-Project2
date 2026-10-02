@@ -62,8 +62,8 @@ export class terrain extends THREE.Mesh {
 
     super(planeGeometry, material);
 
-    // Tilts terrain at an angle
-    this.rotation.x = -Math.PI / 4;
+    // Tilts terrain to lay flat along the x axis
+    this.rotation.x = -Math.PI / 2;
   }
 
   /**
