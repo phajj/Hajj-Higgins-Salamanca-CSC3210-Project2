@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createCamera } from "./camera.js";
+import { terrain } from "./terrain.js";
 
 const TWO_PI = Math.PI * 2; // Used for rotation calculations
 const CLOCK = new THREE.Clock();
@@ -87,12 +88,22 @@ function rotatePanels() {
   panels.rotation.x = (panels.rotation.x + PANEL_SPEED * delta) % TWO_PI;
   sunOrigin.rotation.x = (sunOrigin.rotation.x + sunRotationSpeed * delta) % TWO_PI;
 }
+//Add terrain to the scene
+const t = new terrain();
+scene.add(t);
+
+const clock = new THREE.Clock();
 
 /**
  * Render loop, called once per frame
  */
 function animate() {
   rotatePanels();
+  requestAnimationFrame(animate);
+
+  // Update the time uniform every frame to animate the wave
+  t.update(clock.getElapsedTime());
+
   renderer.render(scene, camera);
 }
 
