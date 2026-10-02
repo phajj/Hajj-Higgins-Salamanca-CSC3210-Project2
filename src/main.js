@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createCamera } from "./camera.js";
+import { terrain } from "./terrain.js";
 
 // Scene
 const scene = new THREE.Scene();
@@ -29,10 +30,21 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+//Add terrain to the scene
+const t = new terrain();
+scene.add(t);
+
+const clock = new THREE.Clock();
+
 /**
  * Render loop, called once per frame
  */
 function animate() {
+  requestAnimationFrame(animate);
+
+  // Update the time uniform every frame to animate the wave
+  t.update(clock.getElapsedTime());
+
   renderer.render(scene, camera);
 }
 
