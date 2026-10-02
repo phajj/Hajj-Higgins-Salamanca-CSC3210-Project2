@@ -91,6 +91,7 @@ function rotate() {
 //Add terrain to the scene
 const t = new terrain();
 scene.add(t);
+const satelliteWorldPosition = new THREE.Vector3(); 
 
 /**
  * Render loop, called once per frame
@@ -99,7 +100,8 @@ function animate() {
   rotate();
 
   // Update the time uniform every frame to animate the wave
-  t.update(CLOCK.getElapsedTime());
+  satellite.getWorldPosition(satelliteWorldPosition);
+  t.update(CLOCK.getElapsedTime(), satelliteWorldPosition);
 
   renderer.render(scene, camera);
 }
