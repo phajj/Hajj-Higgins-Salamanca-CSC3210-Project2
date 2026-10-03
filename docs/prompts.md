@@ -12,6 +12,9 @@ This file records the prompts we gave to AI coding assistents and/or other LLMs 
   - LLM: Claude Code CLI
   - should @package-lock.json be in the gitignore?
   - Make a some temporary geometry to live in the space for me to test the camera movements and controls
+- I updated keyboardInput in @src/main.js to have if statements for each keydown and keyup as well as pressed bools for each key (before it was one switch statement that just handled keydown). This change was made with the intent of being able to press multiple keys at once (ie w +a would go forward and left at the same time) but now the key controls don't work at all, why is that?
+  - LLM: Claude Code CLI
+  - Asked Claude to apply the fix by moving the movement checks into a new updateMovement() function called from animate().
 
 ## Jackson 
 

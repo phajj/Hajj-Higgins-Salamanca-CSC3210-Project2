@@ -40,30 +40,60 @@ window.addEventListener("resize", () => {
   orthoCam.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-});
+})
+
+// Keyboard input handling
+var wPresssed = false;
+var aPresssed = false;
+var sPresssed = false;
+var dPresssed = false;
 
 /**
  * Handles keyboard input for perspectiveCamera movement:
  * w a s d
+ * Listened to Jackson's logic D:
  */
 function keyboardInput() {
+  // Handle keydown events to start movement
   window.addEventListener("keydown", (event) => {
-    switch (event.key.toLocaleLowerCase()) {
-      case "w":
-        camera.position.z -= 1;
-        break;
-      case "a":
-        camera.position.x -= 1;
-        break;
-      case "s":
-        camera.position.z += 1;
-        break;
-      case "d":
-        camera.position.x += 1;
-        break;
-    }
-  })
+    if (event.key.toLocaleLowerCase() === "w") 
+      wPresssed = true;
+    if (event.key.toLocaleLowerCase() === "a") 
+      aPresssed = true;
+    if (event.key.toLocaleLowerCase() === "s") 
+      sPresssed = true;
+    if (event.key.toLocaleLowerCase() === "d") 
+      dPresssed = true;
+    });
+  
+  // Handle keyup events to stop movement
+  window.addEventListener("keyup", (event) => {
+    if (event.key.toLocaleLowerCase() === "w") 
+      wPresssed = false;
+    if (event.key.toLocaleLowerCase() === "a")
+      aPresssed = false;
+    if (event.key.toLocaleLowerCase() === "s") 
+      sPresssed = false;
+    if (event.key.toLocaleLowerCase() === "d")
+      dPresssed = false;
+    });
 }
+
+/**
+ * Moves the perspectiveCamera based on which keys are currently held.
+ * Called every frame from animate() so multiple keys can be held at once.
+ */
+function updateMovement() {
+  if (wPresssed)
+    perspCam.position.z -= 0.1;
+  if (aPresssed)
+    perspCam.position.x -= 0.1;
+  if (sPresssed)
+    perspCam.position.z += 0.1;
+  if (dPresssed)
+    perspCam.position.x += 0.1;
+}
+
 
 /**
  * Switches between the perspective and orthographic cameras. Takes keypresses:
@@ -102,6 +132,7 @@ switchCam();
  * Render loop, called once per frame
  */
 function animate() {
+  updateMovement();
   renderer.render(scene, camera);
 }
 
