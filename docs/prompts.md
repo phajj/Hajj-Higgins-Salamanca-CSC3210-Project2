@@ -17,5 +17,5 @@ This file records the prompts we gave to AI coding assistents and/or other LLMs 
   - Asked Claude to apply the fix by moving the movement checks into a new updateMovement() function called from animate().
 
 ## Jackson 
-
+- Help me fix the logic for computing the lift of the terrain in the vertex shader.
 ## Laura

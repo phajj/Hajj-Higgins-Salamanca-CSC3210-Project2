@@ -32,5 +32,9 @@ TODO later
 - Peter Hajj
   - The WASD camera controls were handled in a single `keydown` switch statement, so only one key could be used at a time (for example, W + A could not move the camera forward and left together). 
       - I switched to `keydown`/`keyup` listeners that set a pressed boolean for each key. With help from Claude Code, I moved the movement checks into an `updateMovement()` function that the render loop calls every frame, key inputs can be combined (see [docs/prompts.md](docs/prompts.md)).
+- Jackson Higgins
+  - Implementing delta time for rotation
+    - Solution: Googled threejs delta time example and applied same logic to this project
+    
 ### Above and Beyond Implementations
 TODO: update as we go
