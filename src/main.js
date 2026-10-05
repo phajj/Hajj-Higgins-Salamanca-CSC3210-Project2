@@ -8,6 +8,8 @@ const CLOCK = new THREE.Clock();
 const PANEL_SPEED = 0.5; // Speed of panel rotation
 const SATELLITE_SPEED = .75;
 const SUN_SPEED = .25;
+const MOUSE_SENSITIVITY = 0.002;
+const CAMERA_MOVE_SPEED = 0.1;
 
 // Scene
 const scene = new THREE.Scene();
@@ -96,7 +98,6 @@ sunOrigin.add(sunLight);
 
 scene.add(sunOrigin);
 
-
 /**
  * Rotate the panels of the satellite
  */
@@ -106,6 +107,7 @@ function rotate() {
   sunOrigin.rotation.x = (sunOrigin.rotation.x + SUN_SPEED * delta) % TWO_PI;
   satelliteOrigin.rotation.y = (satelliteOrigin.rotation.y + SATELLITE_SPEED * delta) % TWO_PI;
 }
+
 //Add terrain to the scene
 const t = new terrain();
 scene.add(t);
@@ -116,6 +118,8 @@ var wPresssed = false;
 var aPresssed = false;
 var sPresssed = false;
 var dPresssed = false;
+var qPresssed = false;
+var ePresssed = false;
 
 /**
  * Handles keyboard input for perspectiveCamera movement:
@@ -133,6 +137,10 @@ function keyboardInput() {
       sPresssed = true;
     if (event.key.toLocaleLowerCase() === "d") 
       dPresssed = true;
+    if (event.key.toLocaleLowerCase() === "q") 
+      qPresssed = true;
+    if (event.key.toLocaleLowerCase() === "e") 
+      ePresssed = true;
     });
   
   // Handle keyup events to stop movement
@@ -145,25 +153,57 @@ function keyboardInput() {
       sPresssed = false;
     if (event.key.toLocaleLowerCase() === "d")
       dPresssed = false;
-    });
+    if (event.key.toLocaleLowerCase() === "q")
+      qPresssed = false;
+    if (event.key.toLocaleLowerCase() === "e")
+      ePresssed = false;
+  });
 }
 
+// Reused every frame by updateMovement() instead of allocating new vectors
+const forward = new THREE.Vector3();
+const right = new THREE.Vector3();
+const movement = new THREE.Vector3();
+
 /**
- * Moves the perspectiveCamera based on which keys are currently held.
+ * Rotates the perspective camera with the mouse and moves it with WASD.
  * Called every frame from animate() so multiple keys can be held at once.
  */
 function updateMovement() {
+  // Keep keyboard movement and mouse-look disabled in orthographic mode.
+  if (camera !== perspCam)
+    return;
+
+  // Use the camera's view and horizontal axes so WASD follows its orientation.
+  camera.getWorldDirection(forward);
+  right.crossVectors(forward, camera.up).normalize();
+  movement.set(0, 0, 0);
+
   if (wPresssed)
-    perspCam.position.z -= 0.1;
+    movement.add(forward);
   if (aPresssed)
-    perspCam.position.x -= 0.1;
+    movement.sub(right);
   if (sPresssed)
-    perspCam.position.z += 0.1;
+    movement.sub(forward);
   if (dPresssed)
-    perspCam.position.x += 0.1;
+    movement.add(right);
+  // Normalize combined input so diagonal movement has the same speed.
+  if (movement.lengthSq() > 0)
+    camera.position.addScaledVector(movement.normalize(), CAMERA_MOVE_SPEED);
 }
 
-
+/**
+ * Rotates the perspective camera left or right.
+ * @returns {void}
+ */
+function rotateCam(){
+  if (camera !== perspCam)
+    return;
+  if (qPresssed)
+    camera.rotation.z += 0.01;
+  if (ePresssed)
+    camera.rotation.z -= 0.01;
+}
 /**
  * Switches between the perspective and orthographic cameras. Takes keypresses:
  * 1 = perspective camera
@@ -194,20 +234,38 @@ function switchCam() {
   })
 }
 
+/**
+ * Rotates the perspective camera by how far the mouse moved since the last event.
+ * @param {MouseEvent} event
+ * assisted by Copilot
+ */
+function onMouseMove(event) {
+  if (camera !== perspCam)
+    return;
+  camera.rotation.y -= event.movementX * MOUSE_SENSITIVITY;
+  camera.rotation.x = THREE.MathUtils.clamp(
+    camera.rotation.x - event.movementY * MOUSE_SENSITIVITY,
+    -Math.PI / 2 + 0.01,
+    Math.PI / 2 - 0.01
+  );
+}
+
+document.addEventListener("mousemove", onMouseMove);
 keyboardInput();
 switchCam();
+rotateCam();
 
 /**
  * Render loop, called once per frame
  */
 function animate() {
   rotate();
-
   // Update the time uniform every frame to animate the wave
   satellite.getWorldPosition(satelliteWorldPosition);
   t.update(CLOCK.getElapsedTime(), satelliteWorldPosition);
 
   updateMovement();
+  rotateCam();
   renderer.render(scene, camera);
 }
 
