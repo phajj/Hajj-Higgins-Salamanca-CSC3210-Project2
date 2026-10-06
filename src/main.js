@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { createCamera } from "./camera.js";
+import { perspectiveCamera, orthographicCamera } from "./camera.js";
 import { terrain } from "./terrain.js";
 
 
@@ -8,6 +8,8 @@ const CLOCK = new THREE.Clock();
 const PANEL_SPEED = 0.5; // Speed of panel rotation
 const SATELLITE_SPEED = .75;
 const SUN_SPEED = .25;
+const MOUSE_SENSITIVITY = 0.002;
+const CAMERA_MOVE_SPEED = 0.1;
 
 // Scene
 const scene = new THREE.Scene();
@@ -19,13 +21,31 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Camera
-const camera = createCamera(window.innerWidth / window.innerHeight);
 
-// Keep the camera and renderer in sync with the window size
+// Cameras (perspective and orthographic)
+const perspCam = perspectiveCamera(window.innerWidth / window.innerHeight);
+const orthoCam = orthographicCamera(window.innerWidth / window.innerHeight);
+let camera = perspCam;
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 2, 0, 0);
+pointLight.position.set(0, 0, 0);
+scene.add(pointLight);
+
+// Keep both cameras and the renderer in sync with the window size
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  const aspect = window.innerWidth / window.innerHeight;
+
+  perspCam.aspect = aspect;
+  perspCam.updateProjectionMatrix();
+
+  orthoCam.left = -aspect * 20;
+  orthoCam.right = aspect * 20;
+  orthoCam.updateProjectionMatrix();
+
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
@@ -78,7 +98,6 @@ sunOrigin.add(sunLight);
 
 scene.add(sunOrigin);
 
-
 /**
  * Rotate the panels of the satellite
  */
@@ -88,21 +107,165 @@ function rotate() {
   sunOrigin.rotation.x = (sunOrigin.rotation.x + SUN_SPEED * delta) % TWO_PI;
   satelliteOrigin.rotation.y = (satelliteOrigin.rotation.y + SATELLITE_SPEED * delta) % TWO_PI;
 }
+
 //Add terrain to the scene
 const t = new terrain();
 scene.add(t);
-const satelliteWorldPosition = new THREE.Vector3(); 
+const satelliteWorldPosition = new THREE.Vector3();
+
+// Keyboard input handling
+var wPresssed = false;
+var aPresssed = false;
+var sPresssed = false;
+var dPresssed = false;
+var qPresssed = false;
+var ePresssed = false;
+
+/**
+ * Handles keyboard input for perspectiveCamera movement:
+ * w a s d
+ * Listened to Jackson's logic D:
+ */
+function keyboardInput() {
+  // Handle keydown events to start movement
+  window.addEventListener("keydown", (event) => {
+    if (event.key.toLocaleLowerCase() === "w") 
+      wPresssed = true;
+    if (event.key.toLocaleLowerCase() === "a") 
+      aPresssed = true;
+    if (event.key.toLocaleLowerCase() === "s") 
+      sPresssed = true;
+    if (event.key.toLocaleLowerCase() === "d") 
+      dPresssed = true;
+    if (event.key.toLocaleLowerCase() === "q") 
+      qPresssed = true;
+    if (event.key.toLocaleLowerCase() === "e") 
+      ePresssed = true;
+    });
+  
+  // Handle keyup events to stop movement
+  window.addEventListener("keyup", (event) => {
+    if (event.key.toLocaleLowerCase() === "w") 
+      wPresssed = false;
+    if (event.key.toLocaleLowerCase() === "a")
+      aPresssed = false;
+    if (event.key.toLocaleLowerCase() === "s") 
+      sPresssed = false;
+    if (event.key.toLocaleLowerCase() === "d")
+      dPresssed = false;
+    if (event.key.toLocaleLowerCase() === "q")
+      qPresssed = false;
+    if (event.key.toLocaleLowerCase() === "e")
+      ePresssed = false;
+  });
+}
+
+// Reused every frame by updateMovement() instead of allocating new vectors
+const forward = new THREE.Vector3();
+const right = new THREE.Vector3();
+const movement = new THREE.Vector3();
+
+/**
+ * Rotates the perspective camera with the mouse and moves it with WASD.
+ * Called every frame from animate() so multiple keys can be held at once.
+ */
+function updateMovement() {
+  // Keep keyboard movement and mouse-look disabled in orthographic mode.
+  if (camera !== perspCam)
+    return;
+
+  // Use the camera's view and horizontal axes so WASD follows its orientation.
+  camera.getWorldDirection(forward);
+  right.crossVectors(forward, camera.up).normalize();
+  movement.set(0, 0, 0);
+
+  if (wPresssed)
+    movement.add(forward);
+  if (aPresssed)
+    movement.sub(right);
+  if (sPresssed)
+    movement.sub(forward);
+  if (dPresssed)
+    movement.add(right);
+  // Normalize combined input so diagonal movement has the same speed.
+  if (movement.lengthSq() > 0)
+    camera.position.addScaledVector(movement.normalize(), CAMERA_MOVE_SPEED);
+}
+
+/**
+ * Rotates the perspective camera left or right.
+ * @returns {void}
+ */
+function rotateCam(){
+  if (camera !== perspCam)
+    return;
+  if (qPresssed)
+    camera.rotation.z += 0.01;
+  if (ePresssed)
+    camera.rotation.z -= 0.01;
+}
+/**
+ * Switches between the perspective and orthographic cameras. Takes keypresses:
+ * 1 = perspective camera
+ * 2 = orthographic camera
+ * c = toggle between both
+ */
+function switchCam() {
+  window.addEventListener("keydown", (event) => {
+    switch (event.key.toLocaleLowerCase()) {
+      case "1":
+        if (camera instanceof THREE.OrthographicCamera) {
+          camera = perspCam;
+        }
+        break;
+      case "2":
+        if (camera instanceof THREE.PerspectiveCamera) {
+          camera = orthoCam;
+        }
+        break;
+      case "c":
+        if (camera instanceof THREE.PerspectiveCamera) {
+          camera = orthoCam;
+        } else {
+          camera = perspCam;
+        }
+        break;
+    }
+  })
+}
+
+/**
+ * Rotates the perspective camera by how far the mouse moved since the last event.
+ * @param {MouseEvent} event
+ * assisted by Copilot
+ */
+function onMouseMove(event) {
+  if (camera !== perspCam)
+    return;
+  camera.rotation.y -= event.movementX * MOUSE_SENSITIVITY;
+  camera.rotation.x = THREE.MathUtils.clamp(
+    camera.rotation.x - event.movementY * MOUSE_SENSITIVITY,
+    -Math.PI / 2 + 0.01,
+    Math.PI / 2 - 0.01
+  );
+}
+
+document.addEventListener("mousemove", onMouseMove);
+keyboardInput();
+switchCam();
+rotateCam();
 
 /**
  * Render loop, called once per frame
  */
 function animate() {
   rotate();
-
   // Update the time uniform every frame to animate the wave
   satellite.getWorldPosition(satelliteWorldPosition);
   t.update(CLOCK.getElapsedTime(), satelliteWorldPosition);
 
+  updateMovement();
+  rotateCam();
   renderer.render(scene, camera);
 }
 
