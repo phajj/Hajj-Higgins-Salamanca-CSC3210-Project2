@@ -21,3 +21,5 @@ This file records the prompts we gave to AI coding assistents and/or other LLMs 
 ## Jackson 
 - Help me fix the logic for computing the lift of the terrain in the vertex shader.
 ## Laura
+- How do I tilt the terrain I've created on an angle towards the camera?
+  - Asked this because I was viewing the terrain from the side which limited my view of the terrain and what I was able to see.
